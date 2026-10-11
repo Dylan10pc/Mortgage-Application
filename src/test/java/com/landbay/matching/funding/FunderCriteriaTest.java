@@ -1,5 +1,6 @@
 package com.landbay.matching.funding;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -17,9 +18,9 @@ import com.landbay.matching.eligibility.EligibilityRule;
 
 class FunderCriteriaTest {
 
-	private final Funder funder = new Funder("TEST_FUNDER", "Test Funder");
-	private final Product funded = new Product("P1", "Product one");
-	private final Product notFunded = new Product("P2", "Product two");
+	private final Funder funder = new Funder("TEST_FUNDER", "Test Funder", new BigDecimal("0.0010"));
+	private final Product funded = new Product("P1", "Product one", new BigDecimal("0.0500"));
+	private final Product notFunded = new Product("P2", "Product two", new BigDecimal("0.0500"));
 
 	// A rule that always passes, and a factory for rules that always fail with a chosen code.
 	private static final EligibilityRule PASSES = application -> Optional.empty();

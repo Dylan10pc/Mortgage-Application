@@ -89,7 +89,25 @@ I used Claude Code as a pair-programming partner. The agreed way of working was 
 
 **Review result:** `FunderCriteria.evaluate` and `FunderCatalogue.all` were both correct and matched the AI's reference solution. The exercise instructions were replaced by short what-and-why comments. One housekeeping fix: `FunderCatalogueTest` had been left `@Disabled`, so my catalogue had not actually been exercised yet; once enabled, all 87 tests passed with none skipped.
 
-**Open decision (to be recorded once made):** how Layer 4 should order products, funders and unavailable options.
+**Decision requested:** how Layer 4 should order products, funders and unavailable options. The AI laid out the options with pros and cons for four separate decisions (the order of eligible products, the order of funders within a product, how to present unavailable options, and tie-breaks and where the ordering code lives) and recommended a price-led approach with a cheaper catalogue-order fallback.
+
+### 9. Layer 4: the matching service, with price-led ordering
+
+> Yes, let's go with your recommendations, and start Layer 4.
+
+**Decisions made (my choices from the options in entry 8):**
+
+- **Price-led ordering.** The brief says a higher-risk funder needs a higher interest rate, so price is the one idea that drives all ordering. Each product has an indicative rate, each funder has a margin, and the rate on offer is the product's rate plus the funder's margin (a cautious bank is cheapest, a credit fund dearest).
+- **Eligible products are ranked by the best rate actually on offer, not by their own headline rate.** A product that looks cheap but whose only funder charges a large margin ranks below a dearer product offered at a lower rate. A product nobody can fund has no offer, so it comes after all fundable products, ordered by its own rate.
+- **Two sections instead of one mixed list:** eligible products (each with funding options and the funders that declined, with reasons) and ineligible products (nearest to qualifying first, meaning fewest reasons). "Fewest reasons" is a rough measure, which is worth stating as a limitation.
+- **Every funder appears for every eligible product,** either as a funding option with its rate or as a decline with its reasons. This answers "why not funder X?" directly.
+- **Every ordering ends with an id tie-break,** so the same input always gives the same output.
+- **The ordering lives in one separate class (`ResultOrdering`),** apart from the matching logic, so a changed ordering requirement touches one file.
+- **The margin sits on `Funder`, not `FunderCriteria`** (a change from what the AI first suggested). It is the funder's own commercial property, and this kept `FunderCriteria` and its tests untouched.
+- **`MatchingService` is plain Java, with no Spring.** It is handed its products and funders, so it can be tested with any data and wired into the web layer later.
+- **My practice files this time:** `ResultOrdering` (four comparators) and `MatchingService.fundingFor` (the funder loop). Their tests are `@Disabled` until I implement them.
+
+**Outcome:** Layer 4 scaffolding complete: 110 tests, 16 of them waiting on my two files. The AI verified those 16 against reference solutions in a throwaway copy before handing them over.
 
 ## Suggestions changed or rejected
 

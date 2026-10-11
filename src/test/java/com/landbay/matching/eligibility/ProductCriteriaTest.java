@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductCriteriaTest {
 
-	private final Product product = new Product("HMO_70", "HMO 70%");
+	private final Product product = new Product("HMO_70", "HMO 70%", new BigDecimal("0.0549"));
 
 	// A product with three rules: a loan size range, a 145% interest cover and experience required.
 	private final ProductCriteria criteria = new ProductCriteria(product, List.of(

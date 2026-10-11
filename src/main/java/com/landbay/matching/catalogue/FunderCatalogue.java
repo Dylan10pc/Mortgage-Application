@@ -22,10 +22,11 @@ import com.landbay.matching.funding.FunderCriteria;
  */
 public final class FunderCatalogue {
 
-	// The three funders (identity only), as constants so other code can refer to them directly.
-	public static final Funder MERIDIAN_BANK = new Funder("MERIDIAN_BANK", "Meridian Bank");
-	public static final Funder ATLAS_PENSION_FUND = new Funder("ATLAS_PENSION_FUND", "Atlas Pension Fund");
-	public static final Funder CORVUS_CREDIT_FUND = new Funder("CORVUS_CREDIT_FUND", "Corvus Credit Fund");
+	// The three funders as constants so other code can refer to them directly. The last figure is
+	// the margin each adds to a product's rate: the more risk a funder accepts, the more it charges.
+	public static final Funder MERIDIAN_BANK = new Funder("MERIDIAN_BANK", "Meridian Bank", new BigDecimal("0.0010"));
+	public static final Funder ATLAS_PENSION_FUND = new Funder("ATLAS_PENSION_FUND", "Atlas Pension Fund", new BigDecimal("0.0030"));
+	public static final Funder CORVUS_CREDIT_FUND = new Funder("CORVUS_CREDIT_FUND", "Corvus Credit Fund", new BigDecimal("0.0075"));
 
 	// Utility class: only static members, so nobody should create one.
 	private FunderCatalogue() {

@@ -26,4 +26,11 @@ public final class Checks {
 		}
 	}
 
+	/** Rejects null and negative amounts, but allows zero. */
+	public static void requireNotNegative(BigDecimal amount, String name) {
+		if (amount == null || amount.signum() < 0) {
+			throw new IllegalArgumentException(name + " must not be negative");
+		}
+	}
+
 }

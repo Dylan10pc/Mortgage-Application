@@ -24,14 +24,15 @@ import com.landbay.matching.eligibility.ProductCriteria;
  */
 public final class ProductCatalogue {
 
-	// The six products. Constants, so other code (such as the funder definitions) can refer to a
-	// product without retyping its id text, and a typo becomes a compile error.
-	public static final Product STANDARD_65 = new Product("STANDARD_65", "Standard 65% LTV");
-	public static final Product STANDARD_75 = new Product("STANDARD_75", "Standard 75% LTV");
-	public static final Product FIRST_TIME_LANDLORD_70 = new Product("FIRST_TIME_LANDLORD_70", "First-time Landlord 70% LTV");
-	public static final Product LIMITED_COMPANY_75 = new Product("LIMITED_COMPANY_75", "Limited Company 75% LTV");
-	public static final Product HMO_70 = new Product("HMO_70", "HMO 70% LTV");
-	public static final Product MULTI_UNIT_BLOCK_70 = new Product("MULTI_UNIT_BLOCK_70", "Multi-unit Block 70% LTV");
+	// The six products with their indicative annual rates (0.0479 = 4.79%). Higher LTV and
+	// riskier property cost more. Constants, so other code (such as the funder definitions) can
+	// refer to a product without retyping its id text, and a typo becomes a compile error.
+	public static final Product STANDARD_65 = new Product("STANDARD_65", "Standard 65% LTV", bd("0.0429"));
+	public static final Product STANDARD_75 = new Product("STANDARD_75", "Standard 75% LTV", bd("0.0479"));
+	public static final Product FIRST_TIME_LANDLORD_70 = new Product("FIRST_TIME_LANDLORD_70", "First-time Landlord 70% LTV", bd("0.0499"));
+	public static final Product LIMITED_COMPANY_75 = new Product("LIMITED_COMPANY_75", "Limited Company 75% LTV", bd("0.0489"));
+	public static final Product HMO_70 = new Product("HMO_70", "HMO 70% LTV", bd("0.0549"));
+	public static final Product MULTI_UNIT_BLOCK_70 = new Product("MULTI_UNIT_BLOCK_70", "Multi-unit Block 70% LTV", bd("0.0529"));
 
 	// Assumption: every product tests interest cover at a 5.5% stress rate.
 	private static final BigDecimal STRESS_RATE = new BigDecimal("0.055");
