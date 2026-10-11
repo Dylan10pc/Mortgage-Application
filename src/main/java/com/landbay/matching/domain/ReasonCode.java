@@ -31,5 +31,8 @@ public enum ReasonCode {
 	LOCATION_NOT_SUPPORTED,
 
 	/** The product requires the applicant to have been a landlord before. */
-	LANDLORD_EXPERIENCE_REQUIRED
+	LANDLORD_EXPERIENCE_REQUIRED,
+
+	/** A funder does not fund this product at all, whatever the application looks like. */
+	PRODUCT_NOT_FUNDED
 }

@@ -68,6 +68,29 @@ I used Claude Code as a pair-programming partner. The agreed way of working was 
 **Review result:** `MaxLtvRule` and `AllowedValuesRule` both passed all 10 of their tests first time (63 tests, none skipped). The AI cleaned up formatting only: spacing such as `if(` to `if (`, a trailing-whitespace line, and an inline `java.util.stream.Collectors` replaced by a normal import. The exercise instructions were replaced by short comments explaining what and why.
 
 
+### 7. Layer 3: funder appetite, plus the product catalogue still owed from Layer 2
+
+> Please start Layer 3 (funder appetite), and also complete the item still owed from Layer 2: the product catalogue with an end-to-end test.
+
+**Decisions made:**
+
+- **Funders reuse the eligibility rules.** A funder saying "no HMOs" or "maximum 70% LTV" is the same kind of check as a product's own criteria, so a funder is a list of the same `EligibilityRule` objects plus the set of products it funds. A funder can only narrow what a product allows (product eligibility is checked first), never widen it.
+- **A funder that does not fund a product at all gives one reason, `PRODUCT_NOT_FUNDED`,** and its other rules are ignored. Listing LTV or location problems for a product it would never fund is noise.
+- **Known limitation, to document:** a funder's rules apply to every product it funds. Different limits per product for the same funder would need the rules held per product instead.
+- **Three invented funders with deliberately different appetites,** to demonstrate the problem: a cautious bank (strict LTV, interest cover, loan size, no HMOs, no Scotland), a pension fund (experienced landlords only, larger loans) and a credit fund (funds everything, wider limits). Between them they exercise product, lending-type and risk appetite.
+- **Catalogues are hardcoded for now** (`ProductCatalogue`, `FunderCatalogue`) as a stepping stone; a later layer replaces them with configuration files. A test checks that every product id a funder lists really exists, so a typo cannot silently mean "funds nothing".
+- **The system must handle "eligible but unfunded".** A test builds a case where a product accepts the application but no funder will fund it, because that is a result the API has to explain.
+
+**Outcome:** Layer 3 scaffolding and the Layer 2 catalogue are complete: 87 tests, 14 of them waiting on my two files. The AI verified those 14 against a reference solution in a throwaway copy before handing them over.
+
+### 8. Review of my two funder files, and the pros and cons of how to order results
+
+> Please check my two files and tell me whether they are good, so that I can commit and we can start Layer 4. Can you also give me the pros and cons for the decisions on how we should order results?
+
+**Review result:** `FunderCriteria.evaluate` and `FunderCatalogue.all` were both correct and matched the AI's reference solution. The exercise instructions were replaced by short what-and-why comments. One housekeeping fix: `FunderCatalogueTest` had been left `@Disabled`, so my catalogue had not actually been exercised yet; once enabled, all 87 tests passed with none skipped.
+
+**Open decision (to be recorded once made):** how Layer 4 should order products, funders and unavailable options.
+
 ## Suggestions changed or rejected
 
 - **Generated parent version corrected (Layer 0).** The Spring Initializr skeleton declared the Spring Boot parent as `4.1.1.RELEASE`. Before building, the AI checked Maven Central directly and found that this version returns HTTP 404; the published version is `4.1.1`. It was corrected in `pom.xml`, otherwise the first build would have failed. Lesson: verify generated scaffolding against the real repository rather than trusting it.
