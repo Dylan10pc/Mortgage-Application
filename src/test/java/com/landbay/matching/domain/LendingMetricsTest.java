@@ -14,7 +14,7 @@ class LendingMetricsTest {
 		return new BigDecimal(number);
 	}
 
-	// ---- TODO 1: loanToValue ----
+	// ---- loanToValue ----
 
 	@Test
 	void loanToValueGivesTheExactRatio() {
@@ -38,14 +38,14 @@ class LendingMetricsTest {
 		assertThat(LendingMetrics.loanToValue(bd("100000"), bd("200000")).scale()).isEqualTo(4);
 	}
 
-	// ---- TODO 2: annualRent ----
+	// ---- annualRent ----
 
 	@Test
 	void annualRentIsTwelveMonths() {
 		assertThat(LendingMetrics.annualRent(bd("1000"))).isEqualByComparingTo("12000");
 	}
 
-	// ---- TODO 3: interestCoverRatio ----
+	// ---- interestCoverRatio ----
 
 	@Test
 	void interestCoverRatioGivesTheExactRatio() {

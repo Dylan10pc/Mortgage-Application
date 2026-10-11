@@ -45,6 +45,29 @@ I used Claude Code as a pair-programming partner. The agreed way of working was 
 
 **Outcome:** Layer 1 complete: three enums, `MortgageApplication`, `Product`, `Funder`, a shared validation helper, and tests. The AI proved its tests correct by running them against a reference solution in a throwaway copy of the project (all 10 passed) while leaving my stubs untouched.
 
+### 5. Review of my Layer 1 code, then Layer 2: product eligibility rules
+
+> I believe my `LendingMetrics` implementation worked. Please review it, then remove the exercise comments from that file and tell me whether it is clear, so that I can commit it. After that, move on to Layer 2 using the same approach: leave me a file or two to write myself, and correct anything I get wrong.
+
+**Review result:** My implementation passed all 10 tests first time and matched the AI's reference answer. The only change was removing a stray blank line. The exercise instructions (TODOs and hints) were replaced by short comments that say what each method does and why it rounds the way it does, because the standing rule is that every snippet is commented.
+
+**Decisions made for Layer 2:**
+
+- **One small rule object per lending criterion** (`EligibilityRule`), instead of one large method full of `if` statements. Each rule can be tested alone, reused across products, and later built from configuration. A product's eligibility is just a list of rules.
+- **Every failing rule is reported, not only the first.** An integrating system then sees everything wrong with an application in one response.
+- **Failures are structured, not just text.** Each failure is a `Reason` with a closed-enum `ReasonCode`, a readable message, the actual value and what would have passed. This is what the brief means by "enough information for another system to understand why".
+- **Compare money with `compareTo`, never `equals`,** because `BigDecimal` treats 0.75 and 0.7500 as different numbers. The `MaxLtvRule` tests are written to catch this mistake.
+- **My practice files this time:** `MaxLtvRule` and `AllowedValuesRule` (a generic rule covering property type, applicant type and location). Their tests are `@Disabled` until I implement them.
+
+**Outcome:** Layer 2 scaffolding complete: 63 tests, 10 of them waiting on my two files. The AI verified those 10 against a reference solution in a throwaway copy before handing them over.
+
+### 6. Review of my two rule files, and a design question about file count
+
+> Please check my two files, remove the exercise comments and tell me whether they are correct.
+
+**Review result:** `MaxLtvRule` and `AllowedValuesRule` both passed all 10 of their tests first time (63 tests, none skipped). The AI cleaned up formatting only: spacing such as `if(` to `if (`, a trailing-whitespace line, and an inline `java.util.stream.Collectors` replaced by a normal import. The exercise instructions were replaced by short comments explaining what and why.
+
+
 ## Suggestions changed or rejected
 
 - **Generated parent version corrected (Layer 0).** The Spring Initializr skeleton declared the Spring Boot parent as `4.1.1.RELEASE`. Before building, the AI checked Maven Central directly and found that this version returns HTTP 404; the published version is `4.1.1`. It was corrected in `pom.xml`, otherwise the first build would have failed. Lesson: verify generated scaffolding against the real repository rather than trusting it.
