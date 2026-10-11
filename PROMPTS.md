@@ -109,6 +109,24 @@ I used Claude Code as a pair-programming partner. The agreed way of working was 
 
 **Outcome:** Layer 4 scaffolding complete: 110 tests, 16 of them waiting on my two files. The AI verified those 16 against reference solutions in a throwaway copy before handing them over.
 
+### 10. Layer 5: the HTTP API
+
+> Okay, start Layer 5.
+
+**Decisions made:**
+
+- **One endpoint: `POST /api/v1/matches`, returning 200 OK.** POST because the input is a body; 200 rather than 201 because nothing is stored. The version in the path lets the contract evolve later.
+- **The API contract is separate from the internal model** (`MatchRequest` and `MatchResponse` versus `MortgageApplication` and `MatchResult`), so either can change without breaking the other.
+- **Validation reports every bad field at once,** using Bean Validation annotations on the request. Domain checks remain as a second line of defence, so a rule drifting out of step would show up as a server error rather than a silent wrong answer.
+- **`hasLandlordExperience` is a `Boolean`, not a `boolean`,** so leaving it out is an error instead of silently meaning "no experience". For an eligibility decision, a wrong default is worse than a rejected request.
+- **Enum values must match exactly** (upper case). An unknown value is rejected with a message listing the accepted values.
+- **Defensive limits on input:** the case reference is limited to 64 letters, digits and `. _ / -` so it is safe to log and echo; money allows at most 12 whole digits and 2 decimal places. Both are assumptions to confirm with the business.
+- **Errors use RFC 9457 problem responses** (`application/problem+json`), including 404, 405 and 415, extending Spring's standard handler. A catch-all handler returns a generic message and logs the real exception, so internals never leak.
+- **Rates are shown as percentages** (`5.09` meaning 5.09%) by moving the decimal point on the exact `BigDecimal`, never by floating-point multiplication.
+- **`MatchingService` is wired in one small `@Configuration` class,** so the matching code stays plain Java and the next layer only has to change where its data comes from.
+
+**Outcome:** Layer 5 complete: 130 tests, all passing. The AI also started the real packaged application and called it with `curl`, checking a successful match, an unknown enum value, several bad values at once and missing fields.
+
 ## Suggestions changed or rejected
 
 - **Generated parent version corrected (Layer 0).** The Spring Initializr skeleton declared the Spring Boot parent as `4.1.1.RELEASE`. Before building, the AI checked Maven Central directly and found that this version returns HTTP 404; the published version is `4.1.1`. It was corrected in `pom.xml`, otherwise the first build would have failed. Lesson: verify generated scaffolding against the real repository rather than trusting it.

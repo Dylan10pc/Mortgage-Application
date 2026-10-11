@@ -1,0 +1,10 @@
+{
+  "caseReference": "CASE-1001",
+  "loanAmount": 150000,
+  "propertyValue": 200000,
+  "monthlyRent": 1000,
+  "propertyType": "HOUSE",
+  "applicantType": "INDIVIDUAL",
+  "location": "ENGLAND",
+  "hasLandlordExperience": true
+}
