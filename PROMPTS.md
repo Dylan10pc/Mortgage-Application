@@ -4,7 +4,26 @@ This file records how AI was used while building this exercise, the significant 
 
 ## How AI was used
 
-I used Claude Code as a pair-programming partner. The agreed way of working was to build the solution **layer by layer**, so that I understand each part before the next one is added. After each layer the AI explains what was built and why, and I can ask questions or challenge decisions before moving on.
+I used Claude Code as a pair-programming partner. I set the way of working: build the solution **layer by layer**, so that I understand each part before the next one is added, and commit each layer myself after reading the files (the git history has one commit per layer). After each layer the AI explains what it built and why, and I can question or overrule it before moving on.
+
+### Who did what
+
+- **The AI** proposed the layer plan and the detailed design, wrote the tests, and implemented everything from Layer 4 onwards (the matching service, result ordering, HTTP API, configuration and operational pieces).
+- **I wrote five files myself** in Layers 1 to 3, from stubs and hints the AI supplied, which the AI then reviewed against its tests: `LendingMetrics` (the LTV and ICR maths), `MaxLtvRule`, `AllowedValuesRule`, `FunderCriteria.evaluate` and `FunderCatalogue.all`.
+- **I made the process decisions and chose between the options the AI put to me**, listed below. Where I gave a layer a plain "go", I was delegating the detailed design, and the entry says so.
+
+### Where I steered the AI
+
+| Layer | What I directed or decided |
+|---|---|
+| 0 | Chose **Maven over Gradle** (familiar to reviewers, and the wrapper means nothing to install). Approved the plan and the downloads. Asked for a test that proves the app really **responds**, not just that it compiles. |
+| 1 | Chose **closed enums** for better error handling. Decided that **I make the commits myself**, one file at a time, so I read everything. Asked for **a comment on every snippet**. Asked to **write a practice file myself** to get used to Java again. |
+| 2 | Asked to continue the practice-file approach. **Questioned whether the eligibility rules should be merged into fewer files**; the AI advised keeping them separate (merge only where the logic is identical) and I went with that. |
+| 3 | Asked for the item still owed from Layer 2 (the product catalogue) to be completed in the same step. Wrote the funder logic myself. |
+| 4 | Asked for **pros and cons of the ordering options** instead of accepting a default, then **chose the price-led recommendations**. Told the AI to **write the implementation from here on**, to move faster. |
+| 5 | Directed the AI to build the HTTP API from the agreed plan, and delegated the detailed design. |
+| 6 and 7 | Asked for **both layers together**. Asked to see the front end; on learning there is none, **told the AI not to build a demo page** and to show me how to run the application instead. |
+| 8 | Asked for the README, and asked that this file make my direction visible. |
 
 ## Prompts
 
@@ -63,10 +82,11 @@ I used Claude Code as a pair-programming partner. The agreed way of working was 
 
 ### 6. Review of my two rule files, and a design question about file count
 
-> Please check my two files, remove the exercise comments and tell me whether they are correct.
+> For the eligibility rules, should we have fewer Java files, or is it better to keep them all separate? Please also check my two files, remove the exercise comments and tell me whether they are correct.
 
 **Review result:** `MaxLtvRule` and `AllowedValuesRule` both passed all 10 of their tests first time (63 tests, none skipped). The AI cleaned up formatting only: spacing such as `if(` to `if (`, a trailing-whitespace line, and an inline `java.util.stream.Collectors` replaced by a normal import. The exercise instructions were replaced by short comments explaining what and why.
 
+**My question and the answer I went with:** I asked whether fewer files would be better. The AI advised keeping one file per rule and merging only where the logic is genuinely identical (which is why the three "must be one of these values" checks are already one generic class). I accepted that.
 
 ### 7. Layer 3: funder appetite, plus the product catalogue still owed from Layer 2
 
@@ -95,7 +115,9 @@ I used Claude Code as a pair-programming partner. The agreed way of working was 
 
 > Yes, let's go with your recommendations, and start Layer 4.
 
-**Decisions made (my choices from the options in entry 8):**
+**My call:** I chose the price-led recommendations over the cheaper alternatives (catalogue order everywhere, an explicit funder priority number, or ranking by headroom or funder count).
+
+**Decisions that follow from that choice:**
 
 - **Price-led ordering.** The brief says a higher-risk funder needs a higher interest rate, so price is the one idea that drives all ordering. Each product has an indicative rate, each funder has a margin, and the rate on offer is the product's rate plus the funder's margin (a cautious bank is cheapest, a credit fund dearest).
 - **Eligible products are ranked by the best rate actually on offer, not by their own headline rate.** A product that looks cheap but whose only funder charges a large margin ranks below a dearer product offered at a lower rate. A product nobody can fund has no offer, so it comes after all fundable products, ordered by its own rate.
@@ -105,15 +127,19 @@ I used Claude Code as a pair-programming partner. The agreed way of working was 
 - **The ordering lives in one separate class (`ResultOrdering`),** apart from the matching logic, so a changed ordering requirement touches one file.
 - **The margin sits on `Funder`, not `FunderCriteria`** (a change from what the AI first suggested). It is the funder's own commercial property, and this kept `FunderCriteria` and its tests untouched.
 - **`MatchingService` is plain Java, with no Spring.** It is handed its products and funders, so it can be tested with any data and wired into the web layer later.
-- **My practice files this time:** `ResultOrdering` (four comparators) and `MatchingService.fundingFor` (the funder loop). Their tests are `@Disabled` until I implement them.
+- **My practice files this time:** `ResultOrdering` (four comparators) and `MatchingService.fundingFor` (the funder loop).
 
-**Outcome:** Layer 4 scaffolding complete: 110 tests, 16 of them waiting on my two files. The AI verified those 16 against reference solutions in a throwaway copy before handing them over.
+**Outcome:** Layer 4 scaffolding complete: 110 tests, 16 of them waiting on my two files.
+
+
 
 ### 10. Layer 5: the HTTP API
 
 > Okay, start Layer 5.
 
-**Decisions made:**
+**My instruction:** Build the HTTP API from the plan I approved in entry 1 (an endpoint, validation, error handling), with the AI writing it, as agreed in entry 10. I gave no further detail, so I was **delegating the design**; the choices below are the AI's proposals, which I accepted and committed.
+
+**The AI's design proposals:**
 
 - **One endpoint: `POST /api/v1/matches`, returning 200 OK.** POST because the input is a body; 200 rather than 201 because nothing is stored. The version in the path lets the contract evolve later.
 - **The API contract is separate from the internal model** (`MatchRequest` and `MatchResponse` versus `MortgageApplication` and `MatchResult`), so either can change without breaking the other.
@@ -132,8 +158,6 @@ I used Claude Code as a pair-programming partner. The agreed way of working was 
 > Can you do both Layer 6 and Layer 7 together, please?
 >
 
-**Layer 6 decisions (the catalogue moves into configuration):**
-
 - **Products and funders now live in `catalogue.yml`,** not in Java. A rate, a limit or a whole product can change without recompiling. The two hardcoded catalogue classes were deleted, and every existing test now runs against the YAML file, so the unchanged scenarios prove the file behaves exactly as the old code did.
 - **The file is checked completely at startup, and the application refuses to start if it is wrong.** The checker reports every problem together with where it is (for example `funders[1] (ATLAS_PENSION_FUND): 'funds-products' lists 'STANDARD_757'...`), so one edit can fix them all. Running with a half-valid catalogue would give wrong answers to real applications, which is worse than not starting.
 - **It catches mistakes a simple parser would miss:** a missing parameter, a parameter a rule does not use (usually a typo or one on the wrong rule), an unknown enum name (with the accepted values listed), duplicate ids, a funder listing a product that does not exist, and a product with no rules (it would accept everyone).
@@ -142,22 +166,20 @@ I used Claude Code as a pair-programming partner. The agreed way of working was 
 - **The catalogue can be replaced without rebuilding** by starting the application with `--spring.config.additional-location=file:./catalogue.yml`. This was tested: changing STANDARD_75's rate in an external copy changed the rates in the response.
 - **Known quirk:** YAML drops trailing zeros, so a limit written `0.70` is read as `0.7` and appears as `0.7` in messages. The numeric behaviour is identical; only the displayed text differs.
 
-**Layer 7 decisions (making it supportable):**
 
 - **Every request gets an id** (`X-Request-Id`), returned in the response and written on every log line, so one request can be followed through the logs. A caller-supplied id is only trusted if it is short and made of plain characters, because it ends up in log files and an id containing a line break could forge log lines.
 - **Safe response headers** (no sniffing, no framing, no referrer) on everything, and `Cache-Control: no-store` on the API, since responses describe someone's mortgage application. This is sensible defaults rather than a security layer: authentication was out of scope in the brief.
 - **Only the health endpoint is exposed,** with separate liveness and readiness probes. A test confirms that `env`, `beans`, `configprops`, `mappings`, `heapdump` and `loggers` return 404, so nothing reveals configuration.
 - **Graceful shutdown** (in-flight requests finish, up to 20 seconds) and a connection timeout.
 - **Thread-safety is tested, not just asserted:** 1,000 requests of two kinds run in parallel against the single shared matching service, and every answer is checked.
-- **Deliberately left out, to be listed in the README as production follow-ups:** authentication and rate limiting, metrics and tracing, a Docker image, request-size limits at a gateway, and OpenAPI documentation.
 
 **Outcome:** Layers 6 and 7 complete: 166 tests, all passing. The AI tested the real application three ways: with an edited external catalogue, with a deliberately broken catalogue (refused to start, listing three problems), and using the exact run commands given to me.
 
 ## Suggestions changed or rejected
 
-- **Demo page proposed, then dropped (Layer 7).** The AI proposed adding a small web page so I could see the application working. I declined, because the brief says no user interface is needed and my real need was instructions for running it. Lesson: when asked for something that does not exist ("the link to the front end"), explain what exists and ask what is actually needed, rather than building an extra.
-
+- **Demo page proposed, then dropped (Layer 7).** The AI began to plan a small web page so I could see the application working. I stopped it, because the brief says no user interface is needed and what I needed was instructions for running it. Lesson: when asked for something that does not exist ("the link to the front end"), explain what exists and ask what is actually needed, rather than building an extra.
+- **Practice-file approach ended at my request (Layer 4).** The AI's way of working was to leave me a file to write each layer.
+- **Ordering: I chose price-led over the simpler alternatives (Layer 4).** The AI offered catalogue order everywhere as a lower-effort fallback; I took the fuller recommendation so ordering has a real justification (the brief's link between risk and rate).
 - **Generated parent version corrected (Layer 0).** The Spring Initializr skeleton declared the Spring Boot parent as `4.1.1.RELEASE`. Before building, the AI checked Maven Central directly and found that this version returns HTTP 404; the published version is `4.1.1`. It was corrected in `pom.xml`, otherwise the first build would have failed. Lesson: verify generated scaffolding against the real repository rather than trusting it.
 - **Skeleton tidied (Layer 0).** The generated `pom.xml` contained empty placeholder `<licenses>`, `<developers>` and `<scm>` blocks, and a generic `HELP.md`. These were removed as noise.
-
-More entries will be added as the exercise progresses.
+- **The AI changed its own first design for the funder margin (Layer 4).** It first suggested putting the margin on `FunderCriteria`, then moved it to `Funder`, which kept an already-committed class and its tests untouched.
