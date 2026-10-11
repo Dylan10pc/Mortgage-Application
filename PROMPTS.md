@@ -31,6 +31,20 @@ I used Claude Code as a pair-programming partner. The agreed way of working was 
 
 **Outcome:** Layer 0 complete. Spring Boot 4.1.1 on Java 21, built with the Maven wrapper. Verified two ways: an automated test (`HealthEndpointTests`) and a real server started from the packaged jar and called over HTTP.
 
+### 4. Layer 1: the domain model, with a practice file
+
+> I will make the git commits myself, so that I can read each file, understand what it does and then commit it.
+>
+> For Layer 1, use closed enums, because they give better error handling. Please build Layer 1 now. I also want to do some of the coding myself, for practice and to get used to Java again, so please leave me a file to write and tell me what to do and which code snippets to add. You will review it afterwards and correct anything I got wrong.
+
+**Decisions made:**
+
+- **Closed enums over free-text strings** for property type, applicant type and location. An unknown value is rejected at the edge of the system with a clear error, instead of travelling into the eligibility rules, and the compiler checks every use.
+- **Manual commits, one file at a time,** so that I read and understand everything that goes into the repository.
+- **A hands-on practice file.** The AI wrote the tests first and left `LendingMetrics` as three stubbed methods (loan-to-value, annual rent, interest cover ratio) for me to implement. Its tests are `@Disabled` until I am ready, so the build stays green in the meantime. The AI then reviews my version.
+
+**Outcome:** Layer 1 complete: three enums, `MortgageApplication`, `Product`, `Funder`, a shared validation helper, and tests. The AI proved its tests correct by running them against a reference solution in a throwaway copy of the project (all 10 passed) while leaving my stubs untouched.
+
 ## Suggestions changed or rejected
 
 - **Generated parent version corrected (Layer 0).** The Spring Initializr skeleton declared the Spring Boot parent as `4.1.1.RELEASE`. Before building, the AI checked Maven Central directly and found that this version returns HTTP 404; the published version is `4.1.1`. It was corrected in `pom.xml`, otherwise the first build would have failed. Lesson: verify generated scaffolding against the real repository rather than trusting it.
