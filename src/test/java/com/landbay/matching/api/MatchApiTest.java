@@ -96,7 +96,7 @@ class MatchApiTest {
 				.andExpect(jsonPath("$.eligibleProducts[0].declinedFunders[0].funderName").value("Meridian Bank"))
 				.andExpect(jsonPath("$.eligibleProducts[0].declinedFunders[0].reasons[0].code").value("LTV_TOO_HIGH"))
 				.andExpect(jsonPath("$.eligibleProducts[0].declinedFunders[0].reasons[0].actual").value("0.7500"))
-				.andExpect(jsonPath("$.eligibleProducts[0].declinedFunders[0].reasons[0].requirement").value("<= 0.70"))
+				.andExpect(jsonPath("$.eligibleProducts[0].declinedFunders[0].reasons[0].requirement").value("<= 0.7"))
 				.andExpect(jsonPath("$.eligibleProducts[0].declinedFunders[0].reasons[0].message").isNotEmpty())
 
 				// Five products are ineligible, nearest to qualifying first.

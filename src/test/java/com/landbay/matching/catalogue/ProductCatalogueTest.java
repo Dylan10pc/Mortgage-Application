@@ -3,6 +3,8 @@ package com.landbay.matching.catalogue;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import com.landbay.matching.domain.ApplicantType;
 import com.landbay.matching.domain.Location;
@@ -17,14 +19,20 @@ import static com.landbay.matching.ApplicationBuilder.anApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * End-to-end checks of the whole eligibility layer: real products, real rules, realistic applications.
+ * End-to-end checks of the whole eligibility layer using the products in the shipped catalogue.yml:
+ * real rules, loaded from configuration, against realistic applications.
  * The default test application is 75% LTV, interest cover 1.4545, an experienced individual with a house in England.
  */
+@SpringBootTest
 class ProductCatalogueTest {
 
+	// The catalogue exactly as the running application loads it from catalogue.yml.
+	@Autowired
+	private Catalogue catalogue;
+
 	// Ids of the products this application is eligible for, in catalogue order.
-	private static List<String> eligibleProductIds(MortgageApplication application) {
-		return ProductCatalogue.all().stream()
+	private List<String> eligibleProductIds(MortgageApplication application) {
+		return catalogue.products().stream()
 				.map(criteria -> criteria.evaluate(application))
 				.filter(ProductEvaluation::eligible)
 				.map(evaluation -> evaluation.product().id())
@@ -32,8 +40,8 @@ class ProductCatalogueTest {
 	}
 
 	// The full evaluation of one product for an application.
-	private static ProductEvaluation evaluationOf(String productId, MortgageApplication application) {
-		return ProductCatalogue.all().stream()
+	private ProductEvaluation evaluationOf(String productId, MortgageApplication application) {
+		return catalogue.products().stream()
 				.filter(criteria -> criteria.product().id().equals(productId))
 				.findFirst().orElseThrow()
 				.evaluate(application);
@@ -41,7 +49,7 @@ class ProductCatalogueTest {
 
 	@Test
 	void hasSixProductsWithUniqueIds() {
-		List<String> ids = ProductCatalogue.all().stream().map(ProductCriteria::product).map(p -> p.id()).toList();
+		List<String> ids = catalogue.products().stream().map(ProductCriteria::product).map(p -> p.id()).toList();
 
 		assertThat(ids).hasSize(6).doesNotHaveDuplicates();
 	}
@@ -102,7 +110,7 @@ class ProductCatalogueTest {
 
 		assertThat(eligibleProductIds(northernIreland)).isEmpty();
 		// Every single product reports the location as one of its failures.
-		for (ProductCriteria criteria : ProductCatalogue.all()) {
+		for (ProductCriteria criteria : catalogue.products()) {
 			assertThat(criteria.evaluate(northernIreland).failures())
 					.extracting(Reason::code).contains(ReasonCode.LOCATION_NOT_SUPPORTED);
 		}

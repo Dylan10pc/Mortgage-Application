@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-import com.landbay.matching.catalogue.FunderCatalogue;
-import com.landbay.matching.catalogue.ProductCatalogue;
 import com.landbay.matching.domain.ApplicantType;
 import com.landbay.matching.domain.Funder;
 import com.landbay.matching.domain.Location;
@@ -24,12 +24,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * End-to-end checks of the whole matching process: real products, real funders, realistic applications.
+ * End-to-end checks of the whole matching process: the products and funders from the shipped
+ * catalogue.yml, realistic applications, and the matching service exactly as the application wires it.
  * The default test application is 75% LTV, interest cover 1.4545, an experienced individual with a house in England.
  */
+@SpringBootTest
 class MatchingServiceTest {
 
-	private final MatchingService service = new MatchingService(ProductCatalogue.all(), FunderCatalogue.all());
+	@Autowired
+	private MatchingService service;
 
 	private static List<String> productIds(List<EligibleProduct> products) {
 		return products.stream().map(p -> p.product().id()).toList();

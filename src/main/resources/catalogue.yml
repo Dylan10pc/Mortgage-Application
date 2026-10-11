@@ -1,0 +1,135 @@
+# The products Landbay offers and the funders behind them. All figures are invented for this exercise.
+#
+# Edit this file to change a product, a funder or any limit; no code change is needed. The application
+# checks the whole file when it starts and refuses to start, listing EVERY problem, if anything is wrong.
+#
+# Rates and ratios are fractions: 0.0479 means 4.79%, 0.75 means 75%. (YAML drops trailing zeros, so
+# write 0.7 rather than 0.70.) Money is in pounds.
+#
+# Rule types and the parameters each one takes (no more, no fewer):
+#   max-ltv               value                  highest loan-to-value
+#   min-icr               value, stress-rate     lowest interest cover ratio, tested at the stress rate
+#   loan-amount           min, max               smallest and largest loan
+#   experienced-landlord  (none)                 applicant must have been a landlord before
+#   property-types        values                 HOUSE, FLAT, HMO, MULTI_UNIT_BLOCK
+#   applicant-types       values                 INDIVIDUAL, LIMITED_COMPANY
+#   locations             values                 ENGLAND, WALES, SCOTLAND, NORTHERN_IRELAND
+#
+# A product is eligible only if EVERY one of its rules passes. A funder can fund a product only if it
+# lists the product in funds-products AND every one of its own rules passes. The order of the lists is
+# the order they appear in the file; results are ordered by price, not by this order.
+#
+# To change the catalogue without rebuilding, copy this file next to the jar, edit it, and start the
+# application with:  --spring.config.additional-location=file:./catalogue.yml
+
+landbay:
+  catalogue:
+
+    products:
+
+      # Cautious, lowest LTV, open to first-time landlords.
+      - id: STANDARD_65
+        name: Standard 65% LTV
+        indicative-rate: 0.0429
+        rules:
+          - { type: property-types, values: [HOUSE, FLAT] }
+          - { type: locations, values: [ENGLAND, WALES, SCOTLAND] }
+          - { type: max-ltv, value: 0.65 }
+          - { type: min-icr, value: 1.25, stress-rate: 0.055 }
+          - { type: loan-amount, min: 25000, max: 1000000 }
+
+      # Higher LTV, so a stricter interest cover and an experienced landlord are required.
+      - id: STANDARD_75
+        name: Standard 75% LTV
+        indicative-rate: 0.0479
+        rules:
+          - { type: property-types, values: [HOUSE, FLAT] }
+          - { type: locations, values: [ENGLAND, WALES, SCOTLAND] }
+          - { type: experienced-landlord }
+          - { type: max-ltv, value: 0.75 }
+          - { type: min-icr, value: 1.4, stress-rate: 0.055 }
+          - { type: loan-amount, min: 25000, max: 1000000 }
+
+      # Individuals only, with a lower LTV cap and smaller loans to reflect the extra risk.
+      - id: FIRST_TIME_LANDLORD_70
+        name: First-time Landlord 70% LTV
+        indicative-rate: 0.0499
+        rules:
+          - { type: applicant-types, values: [INDIVIDUAL] }
+          - { type: property-types, values: [HOUSE, FLAT] }
+          - { type: locations, values: [ENGLAND, WALES, SCOTLAND] }
+          - { type: max-ltv, value: 0.7 }
+          - { type: min-icr, value: 1.45, stress-rate: 0.055 }
+          - { type: loan-amount, min: 25000, max: 500000 }
+
+      # Companies (typically SPVs) only, with larger loans allowed.
+      - id: LIMITED_COMPANY_75
+        name: Limited Company 75% LTV
+        indicative-rate: 0.0489
+        rules:
+          - { type: applicant-types, values: [LIMITED_COMPANY] }
+          - { type: property-types, values: [HOUSE, FLAT] }
+          - { type: locations, values: [ENGLAND, WALES, SCOTLAND] }
+          - { type: max-ltv, value: 0.75 }
+          - { type: min-icr, value: 1.25, stress-rate: 0.055 }
+          - { type: loan-amount, min: 50000, max: 2000000 }
+
+      # Houses in multiple occupation: higher risk, so a strict cover and experience are required.
+      - id: HMO_70
+        name: HMO 70% LTV
+        indicative-rate: 0.0549
+        rules:
+          - { type: property-types, values: [HMO] }
+          - { type: locations, values: [ENGLAND, WALES, SCOTLAND] }
+          - { type: experienced-landlord }
+          - { type: max-ltv, value: 0.7 }
+          - { type: min-icr, value: 1.45, stress-rate: 0.055 }
+          - { type: loan-amount, min: 50000, max: 1000000 }
+
+      # Blocks of flats under one freehold: larger loans, experienced landlords only.
+      - id: MULTI_UNIT_BLOCK_70
+        name: Multi-unit Block 70% LTV
+        indicative-rate: 0.0529
+        rules:
+          - { type: property-types, values: [MULTI_UNIT_BLOCK] }
+          - { type: locations, values: [ENGLAND, WALES, SCOTLAND] }
+          - { type: experienced-landlord }
+          - { type: max-ltv, value: 0.7 }
+          - { type: min-icr, value: 1.3, stress-rate: 0.055 }
+          - { type: loan-amount, min: 100000, max: 3000000 }
+
+    funders:
+
+      # A cautious high-street bank: cheap money, strict limits. No HMOs or blocks, and it
+      # does not lend in Scotland.
+      - id: MERIDIAN_BANK
+        name: Meridian Bank
+        rate-margin: 0.001
+        funds-products: [STANDARD_65, STANDARD_75, FIRST_TIME_LANDLORD_70, LIMITED_COMPANY_75]
+        rules:
+          - { type: max-ltv, value: 0.7 }
+          - { type: min-icr, value: 1.3, stress-rate: 0.055 }
+          - { type: loan-amount, min: 50000, max: 750000 }
+          - { type: property-types, values: [HOUSE, FLAT] }
+          - { type: locations, values: [ENGLAND, WALES] }
+
+      # A long-term investor that likes large, income-producing loans, but only to experienced landlords.
+      - id: ATLAS_PENSION_FUND
+        name: Atlas Pension Fund
+        rate-margin: 0.003
+        funds-products: [STANDARD_65, STANDARD_75, LIMITED_COMPANY_75, MULTI_UNIT_BLOCK_70]
+        rules:
+          - { type: experienced-landlord }
+          - { type: loan-amount, min: 100000, max: 3000000 }
+          - { type: property-types, values: [HOUSE, FLAT, MULTI_UNIT_BLOCK] }
+          - { type: locations, values: [ENGLAND, WALES, SCOTLAND] }
+
+      # A credit fund that accepts more risk (so wants higher returns): it funds every product,
+      # with only a loan size cap and a location restriction.
+      - id: CORVUS_CREDIT_FUND
+        name: Corvus Credit Fund
+        rate-margin: 0.0075
+        funds-products: [STANDARD_65, STANDARD_75, FIRST_TIME_LANDLORD_70, LIMITED_COMPANY_75, HMO_70, MULTI_UNIT_BLOCK_70]
+        rules:
+          - { type: loan-amount, min: 25000, max: 1500000 }
+          - { type: locations, values: [ENGLAND, WALES, SCOTLAND] }

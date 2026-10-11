@@ -127,7 +127,35 @@ I used Claude Code as a pair-programming partner. The agreed way of working was 
 
 **Outcome:** Layer 5 complete: 130 tests, all passing. The AI also started the real packaged application and called it with `curl`, checking a successful match, an unknown enum value, several bad values at once and missing fields.
 
+### 11. Layers 6 and 7 together: configuration and production polish
+
+> Can you do both Layer 6 and Layer 7 together, please?
+>
+
+**Layer 6 decisions (the catalogue moves into configuration):**
+
+- **Products and funders now live in `catalogue.yml`,** not in Java. A rate, a limit or a whole product can change without recompiling. The two hardcoded catalogue classes were deleted, and every existing test now runs against the YAML file, so the unchanged scenarios prove the file behaves exactly as the old code did.
+- **The file is checked completely at startup, and the application refuses to start if it is wrong.** The checker reports every problem together with where it is (for example `funders[1] (ATLAS_PENSION_FUND): 'funds-products' lists 'STANDARD_757'...`), so one edit can fix them all. Running with a half-valid catalogue would give wrong answers to real applications, which is worse than not starting.
+- **It catches mistakes a simple parser would miss:** a missing parameter, a parameter a rule does not use (usually a typo or one on the wrong rule), an unknown enum name (with the accepted values listed), duplicate ids, a funder listing a product that does not exist, and a product with no rules (it would accept everyone).
+- **A product no funder lists is a warning, not an error,** because "eligible but unfunded" is a legitimate outcome the system is designed to explain.
+- **Rule types are a closed enum,** consistent with the earlier decision to use closed enums, so a misspelt rule type stops startup instead of being ignored.
+- **The catalogue can be replaced without rebuilding** by starting the application with `--spring.config.additional-location=file:./catalogue.yml`. This was tested: changing STANDARD_75's rate in an external copy changed the rates in the response.
+- **Known quirk:** YAML drops trailing zeros, so a limit written `0.70` is read as `0.7` and appears as `0.7` in messages. The numeric behaviour is identical; only the displayed text differs.
+
+**Layer 7 decisions (making it supportable):**
+
+- **Every request gets an id** (`X-Request-Id`), returned in the response and written on every log line, so one request can be followed through the logs. A caller-supplied id is only trusted if it is short and made of plain characters, because it ends up in log files and an id containing a line break could forge log lines.
+- **Safe response headers** (no sniffing, no framing, no referrer) on everything, and `Cache-Control: no-store` on the API, since responses describe someone's mortgage application. This is sensible defaults rather than a security layer: authentication was out of scope in the brief.
+- **Only the health endpoint is exposed,** with separate liveness and readiness probes. A test confirms that `env`, `beans`, `configprops`, `mappings`, `heapdump` and `loggers` return 404, so nothing reveals configuration.
+- **Graceful shutdown** (in-flight requests finish, up to 20 seconds) and a connection timeout.
+- **Thread-safety is tested, not just asserted:** 1,000 requests of two kinds run in parallel against the single shared matching service, and every answer is checked.
+- **Deliberately left out, to be listed in the README as production follow-ups:** authentication and rate limiting, metrics and tracing, a Docker image, request-size limits at a gateway, and OpenAPI documentation.
+
+**Outcome:** Layers 6 and 7 complete: 166 tests, all passing. The AI tested the real application three ways: with an edited external catalogue, with a deliberately broken catalogue (refused to start, listing three problems), and using the exact run commands given to me.
+
 ## Suggestions changed or rejected
+
+- **Demo page proposed, then dropped (Layer 7).** The AI proposed adding a small web page so I could see the application working. I declined, because the brief says no user interface is needed and my real need was instructions for running it. Lesson: when asked for something that does not exist ("the link to the front end"), explain what exists and ask what is actually needed, rather than building an extra.
 
 - **Generated parent version corrected (Layer 0).** The Spring Initializr skeleton declared the Spring Boot parent as `4.1.1.RELEASE`. Before building, the AI checked Maven Central directly and found that this version returns HTTP 404; the published version is `4.1.1`. It was corrected in `pom.xml`, otherwise the first build would have failed. Lesson: verify generated scaffolding against the real repository rather than trusting it.
 - **Skeleton tidied (Layer 0).** The generated `pom.xml` contained empty placeholder `<licenses>`, `<developers>` and `<scm>` blocks, and a generic `HELP.md`. These were removed as noise.
